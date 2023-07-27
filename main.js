@@ -167,23 +167,24 @@ const CannonDebugg = new CannonDebugger(scene, physicalWorld, {})
 
 // Bmw 
 const loader = new GLTFLoader();
+let textrLoader = new THREE.TextureLoader()
 let bmw
 let alloyWheels
 loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
   // loadWheels()
-  bmw=texture.scene
-  bmw.scale.set(2,2,2)
-  console.log("texture",color)
-    scene.add(bmw);
-    animate()
+  bmw = texture.scene
+  bmw.scale.set(2, 2, 2)
+  console.log("texture", color)
+  scene.add(bmw);
+  animate()
 })
 
 // wheels
-function loadWheels(){
-  loader.load('./models/GFH6KIREXIT36D0CGBV1LEHFG.gltf',function(texture){
-    alloyWheels=texture.scene
+function loadWheels() {
+  loader.load('./models/GFH6KIREXIT36D0CGBV1LEHFG.gltf', function (texture) {
+    alloyWheels = texture.scene
     scene.add(alloyWheels)
-    alloyWheels.scale.set(.3,.3,.3)
+    alloyWheels.scale.set(.3, .3, .3)
   })
 }
 
@@ -192,7 +193,7 @@ function loadWheels(){
 const chassisShape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 1))
 const chassisBody = new CANNON.Body({ mass: 150, shape: chassisShape })
 chassisBody.position.set(0, 1, -5)
-chassisBody.angularVelocity.set(0, 0.5, 0)
+// chassisBody.angularVelocity.set(0, 0.5, 0)
 physicalWorld.addBody(chassisBody)
 
 const vehicle = new CANNON.RaycastVehicle({ chassisBody, })
@@ -249,17 +250,16 @@ vehicle.wheelInfos.forEach((wheel) => {
   wheelBody.type = CANNON.Body.KINEMATIC
   wheelBody.collisionFilterGroup = 0 // turn off collisions
   const quaternion = new CANNON.Quaternion().setFromEuler(-Math.PI / 2, 0, 0)
-  wheelBody.addShape(cylinderShape, new CANNON.Vec3(),quaternion)
+  wheelBody.addShape(cylinderShape, new CANNON.Vec3(), quaternion)
   wheelBodies.push(wheelBody)
   // demo.addVisual(wheelBody)
   physicalWorld.addBody(wheelBody)
   const wheelGeo = new THREE.CylinderGeometry(wheel.radius, wheel.radius, wheel.radius / 2, 20)
   const wheelMaterials = new THREE.MeshStandardMaterial({
-    color:'black',
-    roughness:1
+    color: 'black',
+    roughness: 1
   })
-  const wheels = new THREE.Mesh(wheelGeo,wheelMaterials)
-  // wheels.rotation.x = Math.PI/2
+  const wheels = new THREE.Mesh(wheelGeo, wheelMaterials)
   wheelsOg.push(wheels)
   scene.add(wheels)
 })
@@ -283,8 +283,7 @@ physicalWorld.addEventListener('postStep', () => {
 document.addEventListener('keydown', (event) => {
   const maxSteerVal = 0.5
   const maxForce = 1000
-  const brakeForce = 1000000
-
+  const brakeForce = 100
   switch (event.key) {
     case 'w':
     case 'ArrowUp':
@@ -311,8 +310,8 @@ document.addEventListener('keydown', (event) => {
       break
 
     case 'b':
-      vehicle.setBrake(brakeForce, 0)
-      vehicle.setBrake(brakeForce, 1)
+      vehicle.setBrake(20, 0)
+      vehicle.setBrake(20, 1)
       vehicle.setBrake(brakeForce, 2)
       vehicle.setBrake(brakeForce, 3)
       break
@@ -322,8 +321,19 @@ document.addEventListener('keydown', (event) => {
       bmw.traverse((child) => {
         if (child.isMesh) {
           child.material.color = new THREE.Color(color);
+          // child.material.emissive = new THREE.Color('green')
+          // child.material.metalness = 1
+          // textrLoader.load("./redtexture.jpg",function(texture){
+          //   child.material.map = texture
+          //   console.log("Car material",child)
+          // })
         }
       });
+      break
+
+    case ' ':
+      vehicle.setBrake(30, 2)
+      vehicle.setBrake(30, 3)
       break
   }
 })
@@ -361,6 +371,11 @@ document.addEventListener('keyup', (event) => {
       vehicle.setBrake(0, 2)
       vehicle.setBrake(0, 3)
       break
+
+    case ' ':
+      vehicle.setBrake(0, 2)
+      vehicle.setBrake(0, 3)
+      break
   }
 })
 
@@ -371,9 +386,9 @@ const animate = () => {
   groundMesh.quaternion.copy(ground.quaternion)
   bmw.position.copy(chassisBody.position)
   bmw.quaternion.copy(chassisBody.quaternion)
-  wheelsOg.forEach((wheel,index)=>{
-    wheel.position.copy(wheelBodies[index].position)
-    wheel.quaternion.copy(wheelBodies[index].quaternion)
+  wheelsOg.forEach((wheel, index) => {
+    wheel.position.copy(vehicle.wheelInfos[index].worldTransform.position)
+    wheel.quaternion.copy(vehicle.wheelInfos[index].worldTransform.quaternion)
   })
   // alloyWheels.position.copy(wheelBodies[0].position)
   // alloyWheels.quaternion.copy(wheelBodies[0].quaternion)
