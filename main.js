@@ -42,7 +42,7 @@ controls.enablePan = false;
 // Ground
 const groundGeo = new THREE.PlaneGeometry(30, 100);
 const groundMat = new THREE.MeshBasicMaterial({
-  wireframe: true,
+  // wireframe: true,
   // color:'green',
   side: THREE.DoubleSide,
   // transparent
@@ -147,7 +147,7 @@ physicalWorld.addBody(ground)
 // boxbody4.position.x = 3
 // physicalWorld.addBody(boxbody4)
 
-const CannonDebugg = new CannonDebugger(scene, physicalWorld, {})
+// const CannonDebugg = new CannonDebugger(scene, physicalWorld, {})
 // window.addEventListener('keydown', (event) => {
 //   if (event.key === 'w' || event.key === 'W') {
 //     ballBody.applyForce(new CANNON.Vec3(0, 0, -100))
@@ -394,6 +394,7 @@ const animate = () => {
   wheelsOg.forEach((wheel, index) => {
     wheel.position.copy(vehicle.wheelInfos[index].worldTransform.position)
     wheel.quaternion.copy(vehicle.wheelInfos[index].worldTransform.quaternion)
+    wheel.rotateX(-Math.PI / 2);
   })
   // alloyWheels.position.copy(wheelBodies[0].position)
   // alloyWheels.quaternion.copy(wheelBodies[0].quaternion)
@@ -401,7 +402,7 @@ const animate = () => {
   camera.position.copy(offset);
   camera.lookAt(bmw.position);
   physicalWorld.fixedStep()
-  CannonDebugg.update();
+  // CannonDebugg.update();
   renderer.render(scene, camera)
   requestAnimationFrame(animate)
 }
