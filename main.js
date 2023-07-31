@@ -16,9 +16,11 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(50, size.width / size.height)
-camera.position.z = 60;
-camera.position.y = 4;
-camera.position.x = 4;
+// camera.position.z = 60;
+// camera.position.y = 4;
+// camera.position.x = 4;
+// const chasingCamera = camera.clone()
+const offset = new THREE.Vector3(10, 2, 0);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
@@ -26,7 +28,6 @@ scene.add(ambientLight)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(10, 10, 50)
 const helper = new THREE.DirectionalLightHelper(directionalLight, 5);
-// scene.add( helper );
 scene.add(directionalLight)
 
 // Rendere
@@ -175,6 +176,9 @@ loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
   bmw = texture.scene
   bmw.scale.set(2, 2, 2)
   console.log("texture", color)
+  bmw.add(camera)
+  camera.position.copy(offset);
+  camera.lookAt(bmw.position);
   scene.add(bmw);
   animate()
 })
@@ -193,6 +197,7 @@ function loadWheels() {
 const chassisShape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 1))
 const chassisBody = new CANNON.Body({ mass: 150, shape: chassisShape })
 chassisBody.position.set(0, 1, -5)
+chassisBody.quaternion.set(0, 5, .5, 5)
 // chassisBody.angularVelocity.set(0, 0.5, 0)
 physicalWorld.addBody(chassisBody)
 
@@ -393,6 +398,8 @@ const animate = () => {
   // alloyWheels.position.copy(wheelBodies[0].position)
   // alloyWheels.quaternion.copy(wheelBodies[0].quaternion)
   controls.update();
+  camera.position.copy(offset);
+  camera.lookAt(bmw.position);
   physicalWorld.fixedStep()
   CannonDebugg.update();
   renderer.render(scene, camera)
