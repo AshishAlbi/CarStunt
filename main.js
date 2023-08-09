@@ -3,6 +3,7 @@ import * as CANNON from 'cannon-es'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import CannonDebugger from 'cannon-es-debugger';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 let color = 'white'
 // scene 
@@ -16,18 +17,16 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(50, size.width / size.height)
-// camera.position.z = 60;
-// camera.position.y = 4;
-// camera.position.x = 4;
-// const chasingCamera = camera.clone()
 const offset = new THREE.Vector3(10, 2, 0);
 
 // light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
+const ambientLight = new THREE.AmbientLight(0xffffff, .8)
+// ambientLight.castShadow = true
 scene.add(ambientLight)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(10, 10, 50)
 const helper = new THREE.DirectionalLightHelper(directionalLight, 5);
+directionalLight.castShadow = true
 scene.add(directionalLight)
 
 // Rendere
@@ -40,45 +39,29 @@ const controls = new OrbitControls(camera, canvas);
 controls.enablePan = false;
 
 // Ground
-const groundGeo = new THREE.PlaneGeometry(30, 100);
-const groundMat = new THREE.MeshBasicMaterial({
+const groundGeo = new THREE.PlaneGeometry(50, 100);
+const groundMat = new THREE.MeshStandardMaterial({
   // wireframe: true,
-  // color:'green',
+  color:'grey',
   side: THREE.DoubleSide,
-  // transparent
+  metalness:.5,
+  roughness:.5
 })
 const groundMesh = new THREE.Mesh(groundGeo, groundMat);
-// groundMesh.rotation.x=1.570
-// groundMesh.position.y = -1;
+groundMesh.receiveShadow = true
 scene.add(groundMesh)
 
 
 
 // cubes
-const cubeGeo = new THREE.BoxGeometry(2, 2, 2);
+const cubeGeo = new THREE.SphereGeometry(1,64, 64);
 const cubeMaterial = new THREE.MeshStandardMaterial({
   color: 'red',
-  roughness: 1,
-  // wireframe: true
+  roughness: .5,
+  wireframe: true
 })
-// const cube1 = new THREE.Mesh(cubeGeo, cubeMaterial)
-// const cube2 = new THREE.Mesh(cubeGeo, cubeMaterial)
-// cube2.rotation.y = .4
-// const cube3 = new THREE.Mesh(cubeGeo, cubeMaterial)
-// const cube4 = new THREE.Mesh(cubeGeo, cubeMaterial)
-// cube4.rotation.y = -.4
-// scene.add(cube1, cube2, cube3, cube4)
-
-// // Ball
-// const ballGeo = new THREE.SphereGeometry(2);
-// const ballMaterial = new THREE.MeshStandardMaterial({
-//   color: 'red',
-//   roughness: 1,
-//   // wireframe: true
-// })
-// const ball = new THREE.Mesh(ballGeo, ballMaterial)
-// ball.position.z = 40;
-// scene.add(ball)
+const testCube = new THREE.Mesh(cubeGeo,cubeMaterial)
+scene.add(testCube)
 
 window.addEventListener("resize", () => {
   size.width = window.innerWidth
@@ -92,89 +75,40 @@ window.addEventListener("resize", () => {
 const physicalWorld = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.81, 0),
 });
-physicalWorld.defaultContactMaterial.friction = 0
-// object physics 
-// const groundPhyMaterial = new CANNON.Material();
-const groundMaterial = new CANNON.Material('ground')
-const ground = new CANNON.Body({
-  type: CANNON.Body.STATIC,
+physicalWorld.defaultContactMaterial.friction = 5
+const groundMaterial = new CANNON.Material()
+const world = new CANNON.Body({
+  mass:0,
   shape: new CANNON.Plane(),
   material: groundMaterial
 });
-ground.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-ground.position.set(0, 0, 0)
-physicalWorld.addBody(ground)
+physicalWorld.broadphase = new CANNON.SAPBroadphase(physicalWorld)
+world.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+physicalWorld.addBody(world)
+// world.position.set(0,0,0)
 
+// Testcube Physics
+const testCubeShape = new CANNON.Body({
+  mass:5,
+  shape: new CANNON.Sphere(1)
+})
+testCubeShape.position.set(0,5,-10)
+physicalWorld.addBody(testCubeShape)
 
-// const ballPhyMaterial = new CANNON.Material()
-// const ballBody = new CANNON.Body({
-//   mass: 5,
-//   shape: new CANNON.Sphere(2),
-//   material: ballPhyMaterial
-// })
-// ballBody.position.set(0, 1, 40)
-// ballBody.linearDamping = 0.3
-// physicalWorld.addBody(ballBody)
-
-// const groundBallcontact = new CANNON.ContactMaterial(groundPhyMaterial, ballPhyMaterial, { restitution: 0.9 });
-// physicalWorld.addContactMaterial(groundBallcontact)
-
-// const boxbody1 = new CANNON.Body({
-//   mass: 1,
-//   shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1))
-// })
-// physicalWorld.addBody(boxbody1)
-
-// const boxbody2 = new CANNON.Body({
-//   mass: 1,
-//   shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1))
-// })
-// boxbody2.position.y = 2
-// physicalWorld.addBody(boxbody2)
-
-// const boxbody3 = new CANNON.Body({
-//   mass: 1,
-//   shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1))
-// })
-// boxbody3.position.x = 3
-// physicalWorld.addBody(boxbody3)
-
-// const boxbody4 = new CANNON.Body({
-//   mass: 1,
-//   shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1))
-// })
-// boxbody4.position.y = 2
-// boxbody4.position.x = 3
-// physicalWorld.addBody(boxbody4)
-
-// const CannonDebugg = new CannonDebugger(scene, physicalWorld, {})
-// window.addEventListener('keydown', (event) => {
-//   if (event.key === 'w' || event.key === 'W') {
-//     ballBody.applyForce(new CANNON.Vec3(0, 0, -100))
-//   }
-//   else if (event.key === 's' || event.key === 'S') {
-//     ballBody.applyForce(new CANNON.Vec3(0, 0, 100))
-//   }
-//   else if (event.key === 'a' || event.key === 'A') {
-//     ballBody.applyForce(new CANNON.Vec3(-100, 0, 0))
-//   }
-//   else if (event.key === 'd' || event.key === 'D') {
-//     ballBody.applyForce(new CANNON.Vec3(100, 0, 0))
-//   }
-//   else if(event.key === ' '){
-//     ballBody.applyForce(new CANNON.Vec3(0, 150, 0))
-//   }
-// })
 
 // Bmw 
 const loader = new GLTFLoader();
-let textrLoader = new THREE.TextureLoader()
 let bmw
 let alloyWheels
 loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
-  // loadWheels()
   bmw = texture.scene
-  bmw.scale.set(2, 2, 2)
+  bmw.scale.set(2.5, 2.5, 2.5)
+  bmw.traverse(function(model){
+    if(model.isMesh){
+      model.castShadow= true
+      model.receiveShadow = true
+    }
+  })
   console.log("texture", color)
   bmw.add(camera)
   camera.position.copy(offset);
@@ -183,23 +117,14 @@ loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
   animate()
 })
 
-// wheels
-function loadWheels() {
-  loader.load('./models/GFH6KIREXIT36D0CGBV1LEHFG.gltf', function (texture) {
-    alloyWheels = texture.scene
-    scene.add(alloyWheels)
-    alloyWheels.scale.set(.3, .3, .3)
-  })
-}
-
-
 // vehiclePhysics
 const chassisShape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 1))
 const chassisBody = new CANNON.Body({ mass: 150, shape: chassisShape })
 chassisBody.position.set(0, 1, -5)
 chassisBody.quaternion.set(0, 5, .5, 5)
-// chassisBody.angularVelocity.set(0, 0.5, 0)
 physicalWorld.addBody(chassisBody)
+
+// const CannonDebugg = new CannonDebugger(scene,physicalWorld)
 
 const vehicle = new CANNON.RaycastVehicle({ chassisBody, })
 
@@ -220,16 +145,16 @@ const wheelOptions = {
   useCustomSlidingRotationalSpeed: true,
 }
 
-wheelOptions.chassisConnectionPointLocal.set(-1.7, -0.2, 1)
+wheelOptions.chassisConnectionPointLocal.set(-2, -0.4, 1)
 vehicle.addWheel(wheelOptions)
 
-wheelOptions.chassisConnectionPointLocal.set(-1.7, -0.2, -1)
+wheelOptions.chassisConnectionPointLocal.set(-2, -0.4, -1)
 vehicle.addWheel(wheelOptions)
 
-wheelOptions.chassisConnectionPointLocal.set(1.3, -0.3, 1)
+wheelOptions.chassisConnectionPointLocal.set(1.7, -0.4, 1)
 vehicle.addWheel(wheelOptions)
 
-wheelOptions.chassisConnectionPointLocal.set(1.3, -0.3, -1)
+wheelOptions.chassisConnectionPointLocal.set(1.7, -0.4, -1)
 vehicle.addWheel(wheelOptions)
 vehicle.addToWorld(physicalWorld)
 
@@ -245,7 +170,7 @@ function getRandomColorHex() {
 const wheelBodies = []
 const wheelsOg = []
 
-const wheelMaterial = new CANNON.Material('wheel')
+const wheelMaterial = new CANNON.Material()
 vehicle.wheelInfos.forEach((wheel) => {
   const cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius / 2, 20)
   const wheelBody = new CANNON.Body({
@@ -257,7 +182,6 @@ vehicle.wheelInfos.forEach((wheel) => {
   const quaternion = new CANNON.Quaternion().setFromEuler(-Math.PI / 2, 0, 0)
   wheelBody.addShape(cylinderShape, new CANNON.Vec3(), quaternion)
   wheelBodies.push(wheelBody)
-  // demo.addVisual(wheelBody)
   physicalWorld.addBody(wheelBody)
   const wheelGeo = new THREE.CylinderGeometry(wheel.radius, wheel.radius, wheel.radius / 2, 20)
   const wheelMaterials = new THREE.MeshStandardMaterial({
@@ -326,12 +250,6 @@ document.addEventListener('keydown', (event) => {
       bmw.traverse((child) => {
         if (child.isMesh) {
           child.material.color = new THREE.Color(color);
-          // child.material.emissive = new THREE.Color('green')
-          // child.material.metalness = 1
-          // textrLoader.load("./redtexture.jpg",function(texture){
-          //   child.material.map = texture
-          //   console.log("Car material",child)
-          // })
         }
       });
       break
@@ -340,6 +258,8 @@ document.addEventListener('keydown', (event) => {
       vehicle.setBrake(30, 2)
       vehicle.setBrake(30, 3)
       break
+    case 'h':
+      testCubeShape.applyImpulse(new CANNON.Vec3(5,0,0))
   }
 })
 
@@ -387,22 +307,22 @@ document.addEventListener('keyup', (event) => {
 
 
 const animate = () => {
-  groundMesh.position.copy(ground.position)
-  groundMesh.quaternion.copy(ground.quaternion)
+  groundMesh.position.copy(world.position)
+  groundMesh.quaternion.copy(world.quaternion)
   bmw.position.copy(chassisBody.position)
+  testCube.position.copy(testCubeShape.position)
+  testCube.quaternion.copy(testCubeShape.quaternion)
   bmw.quaternion.copy(chassisBody.quaternion)
   wheelsOg.forEach((wheel, index) => {
     wheel.position.copy(vehicle.wheelInfos[index].worldTransform.position)
     wheel.quaternion.copy(vehicle.wheelInfos[index].worldTransform.quaternion)
     wheel.rotateX(-Math.PI / 2);
   })
-  // alloyWheels.position.copy(wheelBodies[0].position)
-  // alloyWheels.quaternion.copy(wheelBodies[0].quaternion)
   controls.update();
-  camera.position.copy(offset);
   camera.lookAt(bmw.position);
   physicalWorld.fixedStep()
   // CannonDebugg.update();
+  renderer.shadowMap.enabled = true
   renderer.render(scene, camera)
   requestAnimationFrame(animate)
 }
