@@ -35,17 +35,15 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
 renderer.setSize(size.width, size.height)
 
 const controls = new OrbitControls(camera, canvas);
-// controls.enableZoom = false;
 controls.enablePan = false;
 
 // Ground
 const groundGeo = new THREE.PlaneGeometry(50, 100);
 const groundMat = new THREE.MeshStandardMaterial({
-  // wireframe: true,
-  color:'grey',
+  color: 'grey',
   side: THREE.DoubleSide,
-  metalness:.5,
-  roughness:.5
+  metalness: .5,
+  roughness: .5
 })
 const groundMesh = new THREE.Mesh(groundGeo, groundMat);
 groundMesh.receiveShadow = true
@@ -54,13 +52,15 @@ scene.add(groundMesh)
 
 
 // cubes
-const cubeGeo = new THREE.SphereGeometry(1,64, 64);
-const cubeMaterial = new THREE.MeshStandardMaterial({
+const cubeGeo = new THREE.CylinderGeometry(1, 1, 1, 64);
+const cubeMaterial = new THREE.MeshLambertMaterial({
   color: 'red',
-  roughness: .5,
-  wireframe: true
+  emissive: 0x000000
+  // wireframe: true
 })
-const testCube = new THREE.Mesh(cubeGeo,cubeMaterial)
+const testCube = new THREE.Mesh(cubeGeo, cubeMaterial)
+testCube.castShadow = true
+testCube.receiveShadow = true
 scene.add(testCube)
 
 window.addEventListener("resize", () => {
@@ -76,55 +76,37 @@ const physicalWorld = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.81, 0),
 });
 physicalWorld.defaultContactMaterial.friction = 5
-const groundMaterial = new CANNON.Material()
-const world = new CANNON.Body({
-  mass:0,
-  shape: new CANNON.Plane(),
-  material: groundMaterial
-});
+
+const groundMaterial = new CANNON.Material('ground')
+const groundShape = new CANNON.Box(new CANNON.Vec3(25, 50, .1))
+const groundBody = new CANNON.Body({ mass: 0, material: groundMaterial })
+groundBody.addShape(groundShape)
+groundBody.position.set(0, 0, 0)
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
+physicalWorld.addBody(groundBody)
+
+
 physicalWorld.broadphase = new CANNON.SAPBroadphase(physicalWorld)
-world.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-physicalWorld.addBody(world)
-// world.position.set(0,0,0)
 
 // Testcube Physics
 const testCubeShape = new CANNON.Body({
-  mass:5,
-  shape: new CANNON.Sphere(1)
+  mass: 1,
+  shape: new CANNON.Cylinder(1, 1, 1, 64),
+  quaternion: new CANNON.Quaternion().setFromEuler(-Math.PI / 2, 0, 0)
 })
-testCubeShape.position.set(0,5,-10)
+testCubeShape.position.set(0, 5, -10)
 physicalWorld.addBody(testCubeShape)
 
 
-// Bmw 
-const loader = new GLTFLoader();
-let bmw
-let alloyWheels
-loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
-  bmw = texture.scene
-  bmw.scale.set(2.5, 2.5, 2.5)
-  bmw.traverse(function(model){
-    if(model.isMesh){
-      model.castShadow= true
-      model.receiveShadow = true
-    }
-  })
-  console.log("texture", color)
-  bmw.add(camera)
-  camera.position.copy(offset);
-  camera.lookAt(bmw.position);
-  scene.add(bmw);
-  animate()
-})
+
 
 // vehiclePhysics
 const chassisShape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 1))
 const chassisBody = new CANNON.Body({ mass: 150, shape: chassisShape })
-chassisBody.position.set(0, 1, -5)
-chassisBody.quaternion.set(0, 5, .5, 5)
+chassisBody.position.set(0, .5, 0)
+chassisBody.quaternion.set(0, 0, 0, 1)
 physicalWorld.addBody(chassisBody)
-
-// const CannonDebugg = new CannonDebugger(scene,physicalWorld)
+// const CannonDebugg = new CannonDebugger(scene, physicalWorld)
 
 const vehicle = new CANNON.RaycastVehicle({ chassisBody, })
 
@@ -132,7 +114,7 @@ const wheelOptions = {
   radius: 0.3,
   directionLocal: new CANNON.Vec3(0, -1, 0),
   suspensionStiffness: 30,
-  suspensionRestLength: 0.3,
+  suspensionRestLength: .3,
   frictionSlip: 1.4,
   dampingRelaxation: 2.3,
   dampingCompression: 4.4,
@@ -172,18 +154,18 @@ const wheelsOg = []
 
 const wheelMaterial = new CANNON.Material()
 vehicle.wheelInfos.forEach((wheel) => {
-  const cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius / 2, 20)
+  const cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius / 2, 64)
   const wheelBody = new CANNON.Body({
-    mass: 0,
+    mass: 1,
     material: wheelMaterial,
   })
-  wheelBody.type = CANNON.Body.KINEMATIC
+  wheelBody.type = CANNON.Body.KINEMTIC
   wheelBody.collisionFilterGroup = 0 // turn off collisions
   const quaternion = new CANNON.Quaternion().setFromEuler(-Math.PI / 2, 0, 0)
   wheelBody.addShape(cylinderShape, new CANNON.Vec3(), quaternion)
   wheelBodies.push(wheelBody)
   physicalWorld.addBody(wheelBody)
-  const wheelGeo = new THREE.CylinderGeometry(wheel.radius, wheel.radius, wheel.radius / 2, 20)
+  const wheelGeo = new THREE.CylinderGeometry(wheel.radius, wheel.radius, wheel.radius / 2, 64)
   const wheelMaterials = new THREE.MeshStandardMaterial({
     color: 'black',
     roughness: 1
@@ -259,7 +241,7 @@ document.addEventListener('keydown', (event) => {
       vehicle.setBrake(30, 3)
       break
     case 'h':
-      testCubeShape.applyImpulse(new CANNON.Vec3(5,0,0))
+      testCubeShape.applyImpulse(new CANNON.Vec3(5, 0, 0))
   }
 })
 
@@ -304,11 +286,31 @@ document.addEventListener('keyup', (event) => {
   }
 })
 
+// Bmw 
+const loader = new GLTFLoader();
+let bmw
+let alloyWheels
+loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
+  bmw = texture.scene
+  bmw.scale.set(2.5, 2.5, 2.5)
+  bmw.traverse(function (model) {
+    if (model.isMesh) {
+      model.castShadow = true
+      model.receiveShadow = true
+    }
+  })
+  bmw.add(camera)
+  camera.position.copy(offset);
+  camera.lookAt(bmw.position);
+  scene.add(bmw);
+  animate()
+})
+
 
 
 const animate = () => {
-  groundMesh.position.copy(world.position)
-  groundMesh.quaternion.copy(world.quaternion)
+  groundMesh.position.copy(groundBody.position)
+  groundMesh.quaternion.copy(groundBody.quaternion)
   bmw.position.copy(chassisBody.position)
   testCube.position.copy(testCubeShape.position)
   testCube.quaternion.copy(testCubeShape.quaternion)
@@ -326,5 +328,4 @@ const animate = () => {
   renderer.render(scene, camera)
   requestAnimationFrame(animate)
 }
-animate();
 
