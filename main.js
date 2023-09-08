@@ -4,11 +4,18 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import CannonDebugger from 'cannon-es-debugger';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-let color = 'white'
+let color = ''
+const txtrLoader = new THREE.TextureLoader()
+const RgbeLoader = new RGBELoader()
+const scene = new THREE.Scene();
+RgbeLoader.load('./models/envmap.hdr', (texture) => {
+
+  texture.mapping = THREE.EquirectangularReflectionMapping
+  scene.background = texture
+})
 // scene 
-const scene = new THREE.Scene;
-
 // sizes
 const size = {
   width: window.innerWidth,
@@ -17,16 +24,16 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(50, size.width / size.height)
-const offset = new THREE.Vector3(10, 2, 0);
+const offset = new THREE.Vector3(10, 5, 0);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, .8)
-// ambientLight.castShadow = true
 scene.add(ambientLight)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(10, 10, 50)
 const helper = new THREE.DirectionalLightHelper(directionalLight, 5);
 directionalLight.castShadow = true
+// scene.add(helper)
 scene.add(directionalLight)
 
 // Rendere
@@ -38,12 +45,19 @@ const controls = new OrbitControls(camera, canvas);
 controls.enablePan = false;
 
 // Ground
-const groundGeo = new THREE.PlaneGeometry(50, 100);
+const groundGeo = new THREE.CylinderGeometry(50, 50, .1, 64);
+const grid = txtrLoader.load('./models/grid.png')
+const alphaMap = txtrLoader.load('./models/alpha-map.png')
 const groundMat = new THREE.MeshStandardMaterial({
+  alphaMap: alphaMap,
+  map: grid,
   color: 'grey',
   side: THREE.DoubleSide,
-  metalness: .5,
-  roughness: .5
+  envMapIntensity: .35,
+  transparent: true,
+  dithering: true,
+  metalness: .05,
+  roughness: .4
 })
 const groundMesh = new THREE.Mesh(groundGeo, groundMat);
 groundMesh.receiveShadow = true
@@ -52,10 +66,12 @@ scene.add(groundMesh)
 
 
 // cubes
-const cubeGeo = new THREE.CylinderGeometry(1, 1, 1, 64);
-const cubeMaterial = new THREE.MeshLambertMaterial({
+const cubeGeo = new THREE.SphereGeometry(1);
+const cubeMaterial = new THREE.MeshStandardMaterial({
   color: 'red',
-  emissive: 0x000000
+  side: THREE.DoubleSide,
+  metalness: .5,
+  roughness: .5
   // wireframe: true
 })
 const testCube = new THREE.Mesh(cubeGeo, cubeMaterial)
@@ -78,40 +94,38 @@ const physicalWorld = new CANNON.World({
 physicalWorld.defaultContactMaterial.friction = 5
 
 const groundMaterial = new CANNON.Material('ground')
-const groundShape = new CANNON.Box(new CANNON.Vec3(25, 50, .1))
+const groundShape = new CANNON.Cylinder(50, 50, .1, 64)
 const groundBody = new CANNON.Body({ mass: 0, material: groundMaterial })
 groundBody.addShape(groundShape)
 groundBody.position.set(0, 0, 0)
-groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
 physicalWorld.addBody(groundBody)
 
 
 physicalWorld.broadphase = new CANNON.SAPBroadphase(physicalWorld)
 
 // Testcube Physics
-const testCubeShape = new CANNON.Body({
+const ball = new CANNON.Body({
   mass: 1,
-  shape: new CANNON.Cylinder(1, 1, 1, 64),
-  quaternion: new CANNON.Quaternion().setFromEuler(-Math.PI / 2, 0, 0)
+  shape: new CANNON.Sphere(1),
 })
-testCubeShape.position.set(0, 5, -10)
-physicalWorld.addBody(testCubeShape)
+ball.position.set(0, 1, -10)
+physicalWorld.addBody(ball)
 
 
 
 
 // vehiclePhysics
-const chassisShape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 1))
-const chassisBody = new CANNON.Body({ mass: 150, shape: chassisShape })
-chassisBody.position.set(0, .5, 0)
+const chassisShape = new CANNON.Box(new CANNON.Vec3(1.2, 0.3, .5))
+const chassisBody = new CANNON.Body({ mass: 200, shape: chassisShape })
+chassisBody.position.set(0, 1, 0)
 chassisBody.quaternion.set(0, 0, 0, 1)
 physicalWorld.addBody(chassisBody)
-// const CannonDebugg = new CannonDebugger(scene, physicalWorld)
+const CannonDebugg = new CannonDebugger(scene, physicalWorld)
 
 const vehicle = new CANNON.RaycastVehicle({ chassisBody, })
 
 const wheelOptions = {
-  radius: 0.3,
+  radius: 0.15,
   directionLocal: new CANNON.Vec3(0, -1, 0),
   suspensionStiffness: 30,
   suspensionRestLength: .3,
@@ -126,17 +140,20 @@ const wheelOptions = {
   customSlidingRotationalSpeed: -30,
   useCustomSlidingRotationalSpeed: true,
 }
-
-wheelOptions.chassisConnectionPointLocal.set(-2, -0.4, 1)
+// frontLeft Wheel
+wheelOptions.chassisConnectionPointLocal.set(-.85,-0.05, .5)
 vehicle.addWheel(wheelOptions)
 
-wheelOptions.chassisConnectionPointLocal.set(-2, -0.4, -1)
+// frontRight Wheel
+wheelOptions.chassisConnectionPointLocal.set(-.85, -0.05, -.5)
 vehicle.addWheel(wheelOptions)
 
-wheelOptions.chassisConnectionPointLocal.set(1.7, -0.4, 1)
+// BackLeft Wheel
+wheelOptions.chassisConnectionPointLocal.set(.65, -0.1, .5)
 vehicle.addWheel(wheelOptions)
 
-wheelOptions.chassisConnectionPointLocal.set(1.7, -0.4, -1)
+// BackRight Wheel
+wheelOptions.chassisConnectionPointLocal.set(.65, -0.1, -.5)
 vehicle.addWheel(wheelOptions)
 vehicle.addToWorld(physicalWorld)
 
@@ -191,6 +208,10 @@ physicalWorld.addEventListener('postStep', () => {
   }
 })
 
+const boothBody = new CANNON.Body({ mass: 1, shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)) })
+boothBody.position.set(10, 1, 0)
+// physicalWorld.addBody(boothBody)
+
 document.addEventListener('keydown', (event) => {
   const maxSteerVal = 0.5
   const maxForce = 1000
@@ -240,8 +261,8 @@ document.addEventListener('keydown', (event) => {
       vehicle.setBrake(30, 2)
       vehicle.setBrake(30, 3)
       break
-    case 'h':
-      testCubeShape.applyImpulse(new CANNON.Vec3(5, 0, 0))
+    // case 'h':
+    //   testCubeShape.applyImpulse(new CANNON.Vec3(5, 0, 0))
   }
 })
 
@@ -288,11 +309,11 @@ document.addEventListener('keyup', (event) => {
 
 // Bmw 
 const loader = new GLTFLoader();
-let bmw
-let alloyWheels
-loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
+let bmw, track
+loader.load('./models/free_bmw_m3_e30.glb', function (texture) {
   bmw = texture.scene
-  bmw.scale.set(2.5, 2.5, 2.5)
+  console.log(bmw);
+  bmw.scale.set(1, 1, 1)
   bmw.traverse(function (model) {
     if (model.isMesh) {
       model.castShadow = true
@@ -303,17 +324,30 @@ loader.load('./models/GH8KD3R6HV8Y5VHWXT3CVAF7Z.gltf', function (texture) {
   camera.position.copy(offset);
   camera.lookAt(bmw.position);
   scene.add(bmw);
-  animate()
+  loadProps()
 })
-
+function loadProps() {
+  const trackTexture = txtrLoader.load('./models/track.png')
+  trackTexture.anisotropy = 16
+  loader.load('./models/track.glb', function (texture) {
+    track = texture.scene
+    track.children[0].material.map = trackTexture
+    console.log(track);
+    track.scale.set(10, 10, 10)
+    track.position.set(23, 0, 8)
+    track.castShadow = true
+    scene.add(track)
+    animate()
+  })
+}
 
 
 const animate = () => {
   groundMesh.position.copy(groundBody.position)
   groundMesh.quaternion.copy(groundBody.quaternion)
   bmw.position.copy(chassisBody.position)
-  testCube.position.copy(testCubeShape.position)
-  testCube.quaternion.copy(testCubeShape.quaternion)
+  testCube.position.copy(ball.position)
+  testCube.quaternion.copy(ball.quaternion)
   bmw.quaternion.copy(chassisBody.quaternion)
   wheelsOg.forEach((wheel, index) => {
     wheel.position.copy(vehicle.wheelInfos[index].worldTransform.position)
