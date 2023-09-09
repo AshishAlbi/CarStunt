@@ -24,7 +24,7 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(50, size.width / size.height)
-const offset = new THREE.Vector3(0, 5, -10);
+const offset = new THREE.Vector3(0, 50, -100);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, .8)
@@ -310,7 +310,7 @@ document.addEventListener('keyup', (event) => {
 // Trees
 let treeBodies = []
 for(let i =0;i<10;i++){
-  const treeShape = new CANNON.Box(new CANNON.Vec3( 1,2,1))
+  const treeShape = new CANNON.Box(new CANNON.Vec3( 1.5,2,1.5))
   const treeBody = new CANNON.Body({
     mass:0,
   })
@@ -333,8 +333,13 @@ for(let i =0;i<10;i++){
   treeBodies[0].position.set(48,2,-6)
   treeBodies[1].position.set(29,2,-30)
   treeBodies[2].position.set(3.5,2,-44)
-  treeBodies[3].position.set(-48,2,.6)
-  treeBodies[4].position.set(-20,2,-9.5)
+  treeBodies[3].position.set(-47,2,.6)
+  treeBodies[4].position.set(-21,2,-9.5)
+  treeBodies[5].position.set(-32.5,2,-23)
+  treeBodies[6].position.set(-24,2,35)
+  treeBodies[7].position.set(-7.5,2,42.3)
+  treeBodies[8].position.set(15,2,40)
+  treeBodies[9].position.set(40.5,2,13)
   controls.update();
   camera.lookAt(bmw.position);
   physicalWorld.fixedStep();
