@@ -63,6 +63,42 @@ const groundMesh = new THREE.Mesh(groundGeo, groundMat);
 groundMesh.receiveShadow = true
 scene.add(groundMesh)
 
+// car 
+const loader = new GLTFLoader();
+let bmw, track
+loader.load(
+  "./models/volkswagen_golf_mk.i_low_poly.glb",
+  function (texture) {
+    bmw = texture.scene;
+    console.log(bmw);
+    bmw.scale.set(.5,.5, .5);
+    bmw.traverse(function (model) {
+      if (model.isMesh) {
+        model.castShadow = true;
+        model.receiveShadow = true;
+      }
+    });
+    bmw.add(camera);
+    camera.position.copy(offset);
+    camera.lookAt(bmw.position);
+    scene.add(bmw);
+    loadProps();
+  }
+);
+function loadProps() {
+  const trackTexture = txtrLoader.load("./models/track.png");
+  trackTexture.anisotropy = 16;
+  loader.load("./models/track.glb", function (texture) {
+    track = texture.scene;
+    track.children[0].material.map = trackTexture;
+    console.log(track);
+    track.scale.set(10, 10, 10);
+    track.position.set(23, 0, 8);
+    track.castShadow = true;
+    scene.add(track);
+    animate();
+  });
+}
 
 window.addEventListener("resize", () => {
   size.width = window.innerWidth
@@ -72,7 +108,9 @@ window.addEventListener("resize", () => {
   renderer.setSize(size.width, size.height)
 })
 
-// Physical world
+
+
+// ______________Physical world
 const physicalWorld = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.81, 0),
 });
@@ -268,44 +306,23 @@ document.addEventListener('keyup', (event) => {
   }
 })
 
-// Bmw 
-const loader = new GLTFLoader();
-let bmw, track
-loader.load(
-  "./models/volkswagen_golf_mk.i_low_poly.glb",
-  function (texture) {
-    bmw = texture.scene;
-    console.log(bmw);
-    bmw.scale.set(.5,.5, .5);
-    bmw.traverse(function (model) {
-      if (model.isMesh) {
-        model.castShadow = true;
-        model.receiveShadow = true;
-      }
-    });
-    bmw.add(camera);
-    camera.position.copy(offset);
-    camera.lookAt(bmw.position);
-    scene.add(bmw);
-    loadProps();
-  }
-);
-function loadProps() {
-  const trackTexture = txtrLoader.load("./models/track.png");
-  trackTexture.anisotropy = 16;
-  loader.load("./models/track.glb", function (texture) {
-    track = texture.scene;
-    track.children[0].material.map = trackTexture;
-    console.log(track);
-    track.scale.set(10, 10, 10);
-    track.position.set(23, 0, 8);
-    track.castShadow = true;
-    scene.add(track);
-    animate();
-  });
+// Objects physics
+// Trees
+let treeBodies = []
+for(let i =0;i<10;i++){
+  const treeShape = new CANNON.Box(new CANNON.Vec3( 1,2,1))
+  const treeBody = new CANNON.Body({
+    mass:0,
+  })
+  treeBodies.push(treeBody)
+  treeBody.addShape(treeShape)
+  physicalWorld.addBody(treeBody);
 }
 
-const animate = () => {
+
+
+
+ function animate(){
   groundMesh.position.copy(groundBody.position);
   groundMesh.quaternion.copy(groundBody.quaternion);
   bmw.position.copy(chassisBody.position);
@@ -313,10 +330,15 @@ const animate = () => {
   bmw.position.x = bmw.position.x + .2
   bmw.quaternion.copy(chassisBody.quaternion);
   bmw.rotateY(-Math.PI / 2);
+  treeBodies[0].position.set(48,2,-6)
+  treeBodies[1].position.set(29,2,-30)
+  treeBodies[2].position.set(3.5,2,-44)
+  treeBodies[3].position.set(-48,2,.6)
+  treeBodies[4].position.set(-20,2,-9.5)
   controls.update();
   camera.lookAt(bmw.position);
   physicalWorld.fixedStep();
-  // CannonDebugg.update();
+  CannonDebugg.update();
   renderer.shadowMap.enabled = true;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
