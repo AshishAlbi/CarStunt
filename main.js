@@ -71,7 +71,7 @@ loader.load(
   function (texture) {
     bmw = texture.scene;
     console.log(bmw);
-    bmw.scale.set(.5,.5, .5);
+    bmw.scale.set(.5, .5, .5);
     bmw.traverse(function (model) {
       if (model.isMesh) {
         model.castShadow = true;
@@ -309,37 +309,70 @@ document.addEventListener('keyup', (event) => {
 // Objects physics
 // Trees
 let treeBodies = []
-for(let i =0;i<10;i++){
-  const treeShape = new CANNON.Box(new CANNON.Vec3( 1.5,2,1.5))
+for (let i = 0; i < 10; i++) {
+  const treeShape = new CANNON.Box(new CANNON.Vec3(1.5, 2, 1.5))
   const treeBody = new CANNON.Body({
-    mass:0,
+    mass: 0,
   })
   treeBodies.push(treeBody)
   treeBody.addShape(treeShape)
   physicalWorld.addBody(treeBody);
 }
 
+// Ramp Physics
+// const rampShape = new CANNON.Box(new CANNON.Vec3(2,2,2))
+// const rampBody = new CANNON.Body({
+//   mass:0,
+//   position:new CANNON.Vec3(13,-1.3,1)
+// })
+// const quaternion = new CANNON.Quaternion().setFromEuler(Math.PI / 9, 0, 0)
+// rampBody.addShape(rampShape,new CANNON.Vec3(),quaternion)
+// physicalWorld.addBody(rampBody)
+
+const rampWidth = 5; // Adjust as needed
+const rampHeight = 1;
+const rampLength = 10;
+const rampAngle = Math.PI / 9; // Adjust the angle of the ramp
+const rampX = 0;
+const rampY = -1;
+const rampZ = 0;
+
+// Create the ramp components
+const rampBaseShape = new CANNON.Box(new CANNON.Vec3(rampWidth, rampHeight, rampLength));
+const rampBaseBody = new CANNON.Body({ mass: 0, shape: rampBaseShape });
+rampBaseBody.position.set(rampX, rampY, rampZ);
+physicalWorld.addBody(rampBaseBody);
+
+const rampTopShape = new CANNON.Box(new CANNON.Vec3(rampWidth, rampHeight, rampLength));
+const rampTopBody = new CANNON.Body({ mass: 0});
+rampTopBody.addShape(rampTopShape)
+rampTopBody.position.set(rampX, rampY + rampHeight * Math.sin(rampAngle), rampZ + rampLength * 0.5 - rampHeight * Math.cos(rampAngle));
+rampTopBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), rampAngle);
+physicalWorld.addBody(rampTopBody);
 
 
 
- function animate(){
+
+
+
+function animate() {
   groundMesh.position.copy(groundBody.position);
   groundMesh.quaternion.copy(groundBody.quaternion);
   bmw.position.copy(chassisBody.position);
-  bmw.position.y = .3
+  bmw.position.y = bmw.position.y -.2
   bmw.position.x = bmw.position.x + .2
   bmw.quaternion.copy(chassisBody.quaternion);
   bmw.rotateY(-Math.PI / 2);
-  treeBodies[0].position.set(48,2,-6)
-  treeBodies[1].position.set(29,2,-30)
-  treeBodies[2].position.set(3.5,2,-44)
-  treeBodies[3].position.set(-47,2,.6)
-  treeBodies[4].position.set(-21,2,-9.5)
-  treeBodies[5].position.set(-32.5,2,-23)
-  treeBodies[6].position.set(-24,2,35)
-  treeBodies[7].position.set(-7.5,2,42.3)
-  treeBodies[8].position.set(15,2,40)
-  treeBodies[9].position.set(40.5,2,13)
+  treeBodies[0].position.set(48, 2, -6)
+  treeBodies[1].position.set(29, 2, -30)
+  treeBodies[2].position.set(3.5, 2, -44)
+  treeBodies[3].position.set(-47, 2, .6)
+  treeBodies[4].position.set(-21, 2, -9.5)
+  treeBodies[5].position.set(-32.5, 2, -23)
+  treeBodies[6].position.set(-24, 2, 35)
+  treeBodies[7].position.set(-7.5, 2, 42.3)
+  treeBodies[8].position.set(15, 2, 40)
+  treeBodies[9].position.set(40.5, 2, 13)
   controls.update();
   camera.lookAt(bmw.position);
   physicalWorld.fixedStep();
