@@ -68,7 +68,6 @@ const loader = new GLTFLoader();
 let bmw, track;
 loader.load("./models/volkswagen_golf_mk.i_low_poly.glb", function (texture) {
   bmw = texture.scene;
-  console.log(bmw);
   bmw.scale.set(0.5, 0.5, 0.5);
   bmw.traverse(function (model) {
     if (model.isMesh) {
@@ -88,10 +87,10 @@ function loadProps() {
   loader.load("./models/track.glb", function (texture) {
     track = texture.scene;
     track.children[0].material.map = trackTexture;
-    console.log(track);
     track.scale.set(10, 10, 10);
     track.position.set(23, 0, 8);
     track.castShadow = true;
+    track.receiveShadow = true;
     scene.add(track);
     animate();
   });
@@ -213,7 +212,7 @@ physicalWorld.addEventListener("postStep", () => {
 
 document.addEventListener("keydown", (event) => {
   const maxSteerVal = 0.5;
-  const maxForce = 1000;
+  const maxForce = 500;
   const brakeForce = 100;
   switch (event.key) {
     case "w":
@@ -320,6 +319,11 @@ for (let i = 0; i < 10; i++) {
   physicalWorld.addBody(treeBody);
 }
 
+const stadiumShape = new CANNON.Box(new CANNON.Vec3(7,3,5.5))
+const stadiumBody = new CANNON.Body({mass: 0})
+stadiumBody.addShape(stadiumShape)
+physicalWorld.addBody(stadiumBody)
+stadiumBody.position.set(0, 3, -19.5)
 // Ramp Physics
 // const rampShape = new CANNON.Box(new CANNON.Vec3(2,2,2))
 // const rampBody = new CANNON.Body({
