@@ -319,11 +319,33 @@ for (let i = 0; i < 10; i++) {
   physicalWorld.addBody(treeBody);
 }
 
-const stadiumShape = new CANNON.Box(new CANNON.Vec3(7,3,5.5))
-const stadiumBody = new CANNON.Body({mass: 0})
+const stadiumShape = new CANNON.Box(new CANNON.Vec3(7, 3, 5.5))
+const stadiumBody = new CANNON.Body({ mass: 0 })
 stadiumBody.addShape(stadiumShape)
 physicalWorld.addBody(stadiumBody)
 stadiumBody.position.set(0, 3, -19.5)
+
+let archBodies = []
+for (let i = 0; i < 6; i++) {
+  const archShape = new CANNON.Box(new CANNON.Vec3(.3, 2, .6));
+  const archBody = new CANNON.Body({
+    mass: 0
+  })
+  archBody.addShape(archShape)
+  archBodies.push(archBody)
+  physicalWorld.addBody(archBody)
+}
+const archShapeWide = new CANNON.Box(new CANNON.Vec3(.6, 2, .6));
+archBodies[0].position.set(.2, 2, 11.8)
+archBodies[1].position.set(.2, 2, 4.1)
+archBodies[2].position.set(4.5, 2, 4.1)
+archBodies[3].position.set(4.5, 2, 11.8)
+archBodies[4].addShape(archShapeWide)
+archBodies[5].addShape(archShapeWide)
+archBodies[4].position.set(-20.9, 2, 19.3)
+archBodies[5].position.set(-20.9, 2, 27)
+
+
 // Ramp Physics
 // const rampShape = new CANNON.Box(new CANNON.Vec3(2,2,2))
 // const rampBody = new CANNON.Body({
@@ -341,12 +363,6 @@ const rampAngle = Math.PI / 8; // Adjust the angle of the ramp
 const rampX = 13.1;
 const rampY = -1;
 const rampZ = 13.5;
-
-// Create the ramp components
-// const rampBaseShape = new CANNON.Box(new CANNON.Vec3(rampWidth, rampHeight, rampLength));
-// const rampBaseBody = new CANNON.Body({ mass: 0, shape: rampBaseShape });
-// rampBaseBody.position.set(rampX, rampY, rampZ);
-// // physicalWorld.addBody(rampBaseBody);
 
 const rampTopShape = new CANNON.Box(
   new CANNON.Vec3(rampWidth, rampHeight, rampLength)
