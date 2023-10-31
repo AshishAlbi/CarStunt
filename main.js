@@ -24,7 +24,7 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(40, size.width / size.height)
-const offset = new THREE.Vector3(0, 7, -20);
+const offset = new THREE.Vector3(0, 15, -50);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -65,10 +65,12 @@ scene.add(groundMesh);
 
 // car
 const loader = new GLTFLoader();
-let bmw, track;
-loader.load("./models/volkswagen_golf_mk.i_low_poly.glb", function (texture) {
+let bmw, track, carWheels
+loader.load("./models/lamborghini_murcielago__lp-640_-_low_poly.glb", function (texture) {
   bmw = texture.scene;
-  bmw.scale.set(0.5, 0.5, 0.5);
+  carWheels = bmw.children[0].children[0].children[0]
+  console.log(carWheels)
+  bmw.scale.set(0.2, 0.2, 0.2);
   bmw.traverse(function (model) {
     if (model.isMesh) {
       model.castShadow = true;
@@ -95,7 +97,6 @@ function loadProps() {
     animate();
   });
 }
-
 window.addEventListener("resize", () => {
   size.width = window.innerWidth;
   size.height = window.innerHeight;
@@ -120,7 +121,7 @@ physicalWorld.addBody(groundBody);
 physicalWorld.broadphase = new CANNON.SAPBroadphase(physicalWorld);
 
 // vehiclePhysics
-const chassisShape = new CANNON.Box(new CANNON.Vec3(1, 0.3, 0.5));
+const chassisShape = new CANNON.Box(new CANNON.Vec3(1.5, 0.4, 0.7));
 const chassisBody = new CANNON.Body({ mass: 200, shape: chassisShape });
 chassisBody.position.set(10, 1, 0);
 chassisBody.quaternion.set(0, 0, 0, 1);
@@ -147,19 +148,19 @@ const wheelOptions = {
   useCustomSlidingRotationalSpeed: true,
 };
 // frontLeft Wheel
-wheelOptions.chassisConnectionPointLocal.set(-0.85, -0.05, 0.5);
+wheelOptions.chassisConnectionPointLocal.set(-0.95, -0.2, 0.7);
 vehicle.addWheel(wheelOptions);
 
 // frontRight Wheel
-wheelOptions.chassisConnectionPointLocal.set(-0.85, -0.05, -0.5);
+wheelOptions.chassisConnectionPointLocal.set(-0.95, -0.2, -0.7);
 vehicle.addWheel(wheelOptions);
 
 // BackLeft Wheel
-wheelOptions.chassisConnectionPointLocal.set(0.65, -0.1, 0.5);
+wheelOptions.chassisConnectionPointLocal.set(0.95, -0.2, 0.7);
 vehicle.addWheel(wheelOptions);
 
 // BackRight Wheel
-wheelOptions.chassisConnectionPointLocal.set(0.65, -0.1, -0.5);
+wheelOptions.chassisConnectionPointLocal.set(0.95, -0.2, -0.7);
 vehicle.addWheel(wheelOptions);
 vehicle.addToWorld(physicalWorld);
 
@@ -381,10 +382,13 @@ function animate() {
   groundMesh.position.copy(groundBody.position);
   groundMesh.quaternion.copy(groundBody.quaternion);
   bmw.position.copy(chassisBody.position);
-  bmw.position.y = bmw.position.y - 0.2;
-  bmw.position.x = bmw.position.x + 0.2;
+  bmw.position.y = bmw.position.y - 0.5;
   bmw.quaternion.copy(chassisBody.quaternion);
   bmw.rotateY(-Math.PI / 2);
+  carWheels.children[12].quaternion.copy(wheelBodies[0].quaternion)
+  carWheels.children[14].quaternion.copy(wheelBodies[3].quaternion)
+  carWheels.children[15].quaternion.copy(wheelBodies[2].quaternion)
+  carWheels.children[13].quaternion.copy(wheelBodies[1].quaternion)
   treeBodies[0].position.set(48, 2, -6);
   treeBodies[1].position.set(29, 2, -30);
   treeBodies[2].position.set(3.5, 2, -44);
@@ -402,7 +406,7 @@ function animate() {
     chassisBody.position.set(10, 1, 0);
   }
   physicalWorld.fixedStep();
-  // CannonDebugg.update();
+  CannonDebugg.update();
   renderer.shadowMap.enabled = true;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
