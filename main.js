@@ -3,7 +3,6 @@ import * as CANNON from 'cannon-es'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import CannonDebugger from 'cannon-es-debugger';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 let color = ''
@@ -66,11 +65,11 @@ scene.add(groundMesh);
 // car
 const loader = new GLTFLoader();
 let bmw, track, carWheels
-loader.load("./models/lamborghini_murcielago__lp-640_-_low_poly.glb", function (texture) {
+loader.load("./models/mazda_cosmo_ap_-_ps1_model.glb", function (texture) {
   bmw = texture.scene;
   carWheels = bmw.children[0].children[0].children[0]
   console.log(carWheels)
-  bmw.scale.set(0.2, 0.2, 0.2);
+  bmw.scale.set(.8,.8,.8);
   bmw.traverse(function (model) {
     if (model.isMesh) {
       model.castShadow = true;
@@ -148,19 +147,19 @@ const wheelOptions = {
   useCustomSlidingRotationalSpeed: true,
 };
 // frontLeft Wheel
-wheelOptions.chassisConnectionPointLocal.set(-0.95, -0.2, 0.7);
+wheelOptions.chassisConnectionPointLocal.set(-0.95, -0.3, 0.7);
 vehicle.addWheel(wheelOptions);
 
 // frontRight Wheel
-wheelOptions.chassisConnectionPointLocal.set(-0.95, -0.2, -0.7);
+wheelOptions.chassisConnectionPointLocal.set(-0.95, -0.3, -0.7);
 vehicle.addWheel(wheelOptions);
 
 // BackLeft Wheel
-wheelOptions.chassisConnectionPointLocal.set(0.95, -0.2, 0.7);
+wheelOptions.chassisConnectionPointLocal.set(0.95, -0.3, 0.7);
 vehicle.addWheel(wheelOptions);
 
 // BackRight Wheel
-wheelOptions.chassisConnectionPointLocal.set(0.95, -0.2, -0.7);
+wheelOptions.chassisConnectionPointLocal.set(0.95, -0.3, -0.7);
 vehicle.addWheel(wheelOptions);
 vehicle.addToWorld(physicalWorld);
 
@@ -347,16 +346,6 @@ archBodies[4].position.set(-20.9, 2, 19.3)
 archBodies[5].position.set(-20.9, 2, 27)
 
 
-// Ramp Physics
-// const rampShape = new CANNON.Box(new CANNON.Vec3(2,2,2))
-// const rampBody = new CANNON.Body({
-//   mass:0,
-//   position:new CANNON.Vec3(13,-1.3,1)
-// })
-// const quaternion = new CANNON.Quaternion().setFromEuler(Math.PI / 9, 0, 0)
-// rampBody.addShape(rampShape,new CANNON.Vec3(),quaternion)
-// physicalWorld.addBody(rampBody)
-
 const rampWidth = 2.2; // Adjust as needed
 const rampHeight = 1.5;
 const rampLength = 2.3;
@@ -379,16 +368,24 @@ rampTopBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), rampAngle);
 physicalWorld.addBody(rampTopBody);
 
 function animate() {
+
+  for (let i = 0; i < vehicle.wheelInfos.length; i++) {
+    const wheel = vehicle.wheelInfos[i];
+    const transform = wheel.worldTransform;
+    const wheelBody = wheelBodies[i];
+    wheelBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), wheel.steering);
+    wheelBody.position.copy(transform.position);
+  }
+
   groundMesh.position.copy(groundBody.position);
   groundMesh.quaternion.copy(groundBody.quaternion);
   bmw.position.copy(chassisBody.position);
-  bmw.position.y = bmw.position.y - 0.5;
+  bmw.position.y = bmw.position.y - .75;
   bmw.quaternion.copy(chassisBody.quaternion);
-  bmw.rotateY(-Math.PI / 2);
-  carWheels.children[12].quaternion.copy(wheelBodies[0].quaternion)
-  carWheels.children[14].quaternion.copy(wheelBodies[3].quaternion)
-  carWheels.children[15].quaternion.copy(wheelBodies[2].quaternion)
-  carWheels.children[13].quaternion.copy(wheelBodies[1].quaternion)
+  carWheels.children[8].quaternion.copy(wheelBodies[0].quaternion)
+  carWheels.children[9].quaternion.copy(wheelBodies[3].quaternion)
+  carWheels.children[4].quaternion.copy(wheelBodies[2].quaternion)
+  carWheels.children[7].quaternion.copy(wheelBodies[1].quaternion)
   treeBodies[0].position.set(48, 2, -6);
   treeBodies[1].position.set(29, 2, -30);
   treeBodies[2].position.set(3.5, 2, -44);
@@ -406,7 +403,7 @@ function animate() {
     chassisBody.position.set(10, 1, 0);
   }
   physicalWorld.fixedStep();
-  CannonDebugg.update();
+  // CannonDebugg.update();
   renderer.shadowMap.enabled = true;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
