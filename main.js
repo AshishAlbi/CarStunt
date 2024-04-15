@@ -14,7 +14,7 @@ RgbeLoader.load('./models/envmap.hdr', (texture) => {
   texture.mapping = THREE.EquirectangularReflectionMapping
   scene.background = texture
 })
-// scene 
+// _______________________________scene 
 // sizes
 const size = {
   width: window.innerWidth,
@@ -23,10 +23,10 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(40, size.width / size.height)
-const offset = new THREE.Vector3(0, 15, -50);
+const offset = new THREE.Vector3(15, 8, 0);
 
 // light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(10, 10, 50);
@@ -217,7 +217,7 @@ document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "w":
     case "ArrowUp":
-      vehicle.applyEngineForce(-maxForce, 2);
+      vehicle.applyEngineForce(-maxForce, 2); 
       vehicle.applyEngineForce(-maxForce, 3);
       break;
 
@@ -346,10 +346,10 @@ archBodies[4].position.set(-20.9, 2, 19.3)
 archBodies[5].position.set(-20.9, 2, 27)
 
 
-const rampWidth = 2.2; // Adjust as needed
+const rampWidth = 2.2;
 const rampHeight = 1.5;
 const rampLength = 2.3;
-const rampAngle = Math.PI / 8; // Adjust the angle of the ramp
+const rampAngle = Math.PI / 8; 
 const rampX = 13.1;
 const rampY = -1;
 const rampZ = 13.5;

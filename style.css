@@ -3,3 +3,21 @@
     padding: 0;
     overflow: hidden;
 }
+
+.info{
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px;
+    position: absolute;
+    color: white;
+    right: 0;
+    opacity: .3;
+    background-color: black;
+}
+
+.info:hover{
+    transition: .3s;
+    opacity: 1;
+}
