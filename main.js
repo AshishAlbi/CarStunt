@@ -23,7 +23,7 @@ const size = {
 
 // camera
 const camera = new THREE.PerspectiveCamera(40, size.width / size.height)
-const offset = new THREE.Vector3(15, 8, 0);
+const offset = new THREE.Vector3(15, 5, 0);
 
 // light
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
