@@ -3,18 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Three World</title>
   </head>
   <body>
     <div class="info">
-      <label>W: Move Up</label>
-      <lable>S: Move Down</lable>
-      <label>A: Move Left</label>
-      <label>D: Move Right</label>
-      <label>F: Flip Car</label>
-      <label>Space: Handbrake</label>
+      <span>W: Move Up</span>
+      <span>S: Move Down</span>
+      <span>A: Move Left</span>
+      <span>D: Move Right</span>
+      <span>F: Flip Car</span>
+      <span>Space: Handbrake</span>
+    </div>
+    <div class="controls">
+      <div class="leftSideControls">
+        <button>space</button>
+        <button>W</button>
+        <button>S</button>
+      </div>
+      <div class="rightSideControls">
+        <div class="rightUp">
+          <button>F</button>
+        </div>
+        <div class="rightDown">
+          <button>A</button>
+          <button>D</button>
+        </div>
+      </div>
     </div>
     <canvas class="webgl"></canvas>
     <script type="module" src="/main.js"></script>

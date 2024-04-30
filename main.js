@@ -5,7 +5,9 @@ import CannonDebugger from 'cannon-es-debugger';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-let color = ''
+const maxSteerVal = 0.5;
+const maxForce = 500;
+const brakeForce = 100;
 const txtrLoader = new THREE.TextureLoader()
 const RgbeLoader = new RGBELoader()
 const scene = new THREE.Scene();
@@ -69,7 +71,7 @@ loader.load("./models/mazda_cosmo_ap_-_ps1_model.glb", function (texture) {
   bmw = texture.scene;
   carWheels = bmw.children[0].children[0].children[0]
   console.log(carWheels)
-  bmw.scale.set(.8,.8,.8);
+  bmw.scale.set(.8, .8, .8);
   bmw.traverse(function (model) {
     if (model.isMesh) {
       model.castShadow = true;
@@ -211,13 +213,10 @@ physicalWorld.addEventListener("postStep", () => {
 });
 
 document.addEventListener("keydown", (event) => {
-  const maxSteerVal = 0.5;
-  const maxForce = 500;
-  const brakeForce = 100;
   switch (event.key) {
     case "w":
     case "ArrowUp":
-      vehicle.applyEngineForce(-maxForce, 2); 
+      vehicle.applyEngineForce(-maxForce, 2);
       vehicle.applyEngineForce(-maxForce, 3);
       break;
 
@@ -349,7 +348,7 @@ archBodies[5].position.set(-20.9, 2, 27)
 const rampWidth = 2.2;
 const rampHeight = 1.5;
 const rampLength = 2.3;
-const rampAngle = Math.PI / 8; 
+const rampAngle = Math.PI / 8;
 const rampX = 13.1;
 const rampY = -1;
 const rampZ = 13.5;
@@ -409,3 +408,81 @@ function animate() {
   requestAnimationFrame(animate);
 };
 
+// mobile control buttons
+const controlButtons = document.querySelector('.controls')
+if (
+  RegExp(/Android/i).exec(navigator.userAgent) ||
+  RegExp(/webOS/i).exec(navigator.userAgent) ||
+  RegExp(/iPhone/i).exec(navigator.userAgent) ||
+  RegExp(/iPad/i).exec(navigator.userAgent) ||
+  RegExp(/iPod/i).exec(navigator.userAgent) ||
+  RegExp(/BlackBerry/i).exec(navigator.userAgent) ||
+  RegExp(/Windows Phone/i).exec(navigator.userAgent) ||
+  navigator.maxTouchPoints > 2
+) {
+  controlButtons.style.display = 'flex'
+  controls.enableZoom = false
+}
+controlButtons.addEventListener('touchstart', function (event) {
+  if (event.target.tagName === 'BUTTON') {
+    const buttonText = event.target.textContent;
+    switch (buttonText) {
+      case "W":
+        vehicle.applyEngineForce(-maxForce, 2);
+        vehicle.applyEngineForce(-maxForce, 3);
+        break;
+
+      case "S":
+        vehicle.applyEngineForce(maxForce, 2);
+        vehicle.applyEngineForce(maxForce, 3);
+        break;
+
+      case "A":
+        vehicle.setSteeringValue(maxSteerVal, 0);
+        vehicle.setSteeringValue(maxSteerVal, 1);
+        break;
+
+      case "D":
+        vehicle.setSteeringValue(-maxSteerVal, 0);
+        vehicle.setSteeringValue(-maxSteerVal, 1);
+        break;
+      case "space":
+        vehicle.setBrake(30, 2);
+        vehicle.setBrake(30, 3);
+        break;
+      case "F":
+        chassisBody.quaternion.set(0, 0, 0, 1);
+        break;
+
+    }
+  }
+});
+controlButtons.addEventListener('touchend', function (event) {
+  if (event.target.tagName === 'BUTTON') {
+    const buttonText = event.target.textContent;
+    switch (buttonText) {
+      case "W":
+        vehicle.applyEngineForce(0, 2);
+        vehicle.applyEngineForce(0, 3);
+        break;
+      case "S":
+        vehicle.applyEngineForce(0, 2);
+        vehicle.applyEngineForce(0, 3);
+        break;
+
+      case "A":
+        vehicle.setSteeringValue(0, 0);
+        vehicle.setSteeringValue(0, 1);
+        break;
+
+      case "D":
+        vehicle.setSteeringValue(0, 0);
+        vehicle.setSteeringValue(0, 1);
+        break;
+      case "space":
+        vehicle.setBrake(0, 2);
+        vehicle.setBrake(0, 3);
+        break;
+    }
+  }
+})
