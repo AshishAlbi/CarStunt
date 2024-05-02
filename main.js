@@ -165,15 +165,6 @@ wheelOptions.chassisConnectionPointLocal.set(0.95, -0.3, -0.7);
 vehicle.addWheel(wheelOptions);
 vehicle.addToWorld(physicalWorld);
 
-function getRandomColorHex() {
-  const letters = "0123456789ABCDEF";
-  let color = "#";
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
-
 const wheelBodies = [];
 
 const wheelMaterial = new CANNON.Material();
@@ -244,15 +235,6 @@ document.addEventListener("keydown", (event) => {
       vehicle.setBrake(brakeForce, 2);
       vehicle.setBrake(brakeForce, 3);
       break;
-    // case 'r':
-    //   color = getRandomColorHex()
-    //   console.log(color);
-    //   bmw.traverse((child) => {
-    //     if (child.isMesh) {
-    //       child.material.color = new THREE.Color(color);
-    //     }
-    //   });
-    //   break
 
     case " ":
       vehicle.setBrake(30, 2);
