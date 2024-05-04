@@ -17,7 +17,7 @@
     "require": "./dist/counter.umd.cjs"
   },
   "scripts": {
-    "predeploy":"npm run buid",
+    "predeploy":"npm run build",
     "deploy":"gh-pages -d dist",
     "dev": "vite --host",
     "build": "vite build"
