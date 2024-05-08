@@ -123,9 +123,11 @@ physicalWorld.broadphase = new CANNON.SAPBroadphase(physicalWorld);
 
 // vehiclePhysics
 const chassisShape = new CANNON.Box(new CANNON.Vec3(1.5, 0.4, 0.7));
-const chassisBody = new CANNON.Body({ mass: 200, shape: chassisShape });
+const chassisMaterial = new CANNON.Material()
+const chassisBody = new CANNON.Body({ mass: 200, shape: chassisShape, material: chassisMaterial });
 chassisBody.position.set(10, 1, 0);
 chassisBody.quaternion.set(0, 0, 0, 1);
+chassisBody.collisionFilterGroup = 1
 physicalWorld.addBody(chassisBody);
 
 const CannonDebugg = new CannonDebugger(scene, physicalWorld);
@@ -329,7 +331,7 @@ archBodies[5].position.set(-20.9, 2, 27)
 
 const rampWidth = 2.2;
 const rampHeight = 1.5;
-const rampLength = 2.3;
+const rampLength = 2.5;
 const rampAngle = Math.PI / 8;
 const rampX = 13.1;
 const rampY = -1;
@@ -338,14 +340,22 @@ const rampZ = 13.5;
 const rampTopShape = new CANNON.Box(
   new CANNON.Vec3(rampWidth, rampHeight, rampLength)
 );
-const rampTopBody = new CANNON.Body({ mass: 0 });
+
+const rampMaterial = new CANNON.Material()
+const rampTopBody = new CANNON.Body({ mass: 0, material: rampMaterial });
 rampTopBody.addShape(rampTopShape);
 rampTopBody.position.set(
   rampX,
   rampY + rampHeight * Math.sin(rampAngle),
   rampZ + rampLength * 0.5 - rampHeight * Math.cos(rampAngle)
 );
+const RampChasis = new CANNON.ContactMaterial(rampMaterial, chassisMaterial, {
+  friction: 0.3,
+  restitution: 0.5
+})
+physicalWorld.addContactMaterial(RampChasis)
 rampTopBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), rampAngle);
+rampTopBody.collisionFilterGroup = 2
 physicalWorld.addBody(rampTopBody);
 
 function animate() {
@@ -384,7 +394,7 @@ function animate() {
     chassisBody.position.set(10, 1, 0);
   }
   physicalWorld.fixedStep();
-  // CannonDebugg.update();
+  CannonDebugg.update();
   renderer.shadowMap.enabled = true;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
@@ -392,6 +402,7 @@ function animate() {
 
 // mobile control buttons
 const controlButtons = document.querySelector('.controls')
+const info = document.querySelector('.info')
 if (
   RegExp(/Android/i).exec(navigator.userAgent) ||
   RegExp(/webOS/i).exec(navigator.userAgent) ||
@@ -403,6 +414,7 @@ if (
   navigator.maxTouchPoints > 2
 ) {
   controlButtons.style.display = 'flex'
+  info.style.display = 'none'
   controls.enableZoom = false
 }
 controlButtons.addEventListener('touchstart', function (event) {
