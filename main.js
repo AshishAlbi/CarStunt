@@ -394,7 +394,7 @@ function animate() {
     chassisBody.position.set(10, 1, 0);
   }
   physicalWorld.fixedStep();
-  CannonDebugg.update();
+  // CannonDebugg.update();
   renderer.shadowMap.enabled = true;
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
