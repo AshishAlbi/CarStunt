@@ -95,6 +95,7 @@ function loadProps() {
     track.castShadow = true;
     track.receiveShadow = true;
     scene.add(track);
+    document.querySelector('.loader').style.display='none'
     animate();
   });
 }
@@ -444,7 +445,7 @@ controlButtons.addEventListener('touchstart', function (event) {
         vehicle.setBrake(30, 2);
         vehicle.setBrake(30, 3);
         break;
-      case "F":
+      case "Flip":
         chassisBody.quaternion.set(0, 0, 0, 1);
         break;
 
